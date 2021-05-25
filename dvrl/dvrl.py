@@ -25,7 +25,7 @@ import numpy as np
 from sklearn import metrics
 import tensorflow.compat.v1 as tf
 import tqdm
-from dvrl import dvrl_metrics
+import dvrl_metrics
 from tensorflow.contrib import layers as contrib_layers
 
 

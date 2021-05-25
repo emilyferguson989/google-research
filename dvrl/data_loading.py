@@ -24,6 +24,7 @@ import os
 
 import zipfile
 
+from PIL import Image
 import numpy as np
 import pandas as pd
 
@@ -32,8 +33,9 @@ from sklearn import preprocessing
 import tensorflow.compat.v1 as tf
 from tensorflow.compat.v1.keras import backend
 from tensorflow.compat.v1.keras import datasets
+from sklearn.model_selection import train_test_split
 
-from dvrl import dvrl_utils
+import dvrl_utils
 
 
 def load_tabular_data(data_name, dict_no, noise_rate):
@@ -149,6 +151,106 @@ def load_tabular_data(data_name, dict_no, noise_rate):
 
     df['280'] = 1*(df['280'] > 0)
     df = df.rename(columns={'280': 'Y'})
+    df['Y'] = df['Y'].astype(int)
+
+    # Resets index
+    df = df.reset_index()
+    df = df.drop(columns=['index'])
+
+  # load california housing dataset (./data_files/california_housing_train.csv
+  # and ./data_files/california_housing_test.csv)
+  elif data_name == 'cali':
+    train_url = './data_files/california_housing_train.csv'
+    test_url = './data_files/california_housing_test.csv'
+
+    data_train = pd.read_csv(train_url, header=0)
+    data_test = pd.read_csv(test_url, header=0)
+
+    df = pd.concat((data_train, data_test), axis=0)
+
+    # Column names
+    df.columns = ['longitude', 'latitude', 'housing_median_age', 'total_rooms', 'total_bedrooms',
+                    'population', 'households', 'median_income', 'median_house_value']
+    df['longitude'] = pd.to_numeric(df['longitude'], downcast="float")
+    df['latitude'] = pd.to_numeric(df['latitude'], downcast="float")
+    df['housing_median_age'] = pd.to_numeric(df['housing_median_age'], downcast="float")
+    df['total_rooms'] = pd.to_numeric(df['total_rooms'], downcast="float")
+    df['total_bedrooms'] = pd.to_numeric(df['total_bedrooms'], downcast="float")
+    df['population'] = pd.to_numeric(df['population'], downcast="float")
+    df['households'] = pd.to_numeric(df['households'], downcast="float")
+    df['median_income'] = pd.to_numeric(df['median_income'], downcast="float")
+    df['median_house_value'] = pd.to_numeric(df['median_house_value'], downcast="float")
+
+
+    df['median_house_value'].where(df['median_house_value'] > 200000, 0, inplace=True)
+    df['median_house_value'].where(df['median_house_value'] <= 200000, 1, inplace=True)
+
+    # Sets label name as Y
+    df = df.rename(columns={'median_house_value': 'Y'})
+    df['Y'] = df['Y'].astype(int)
+
+    # Resets index
+    df = df.reset_index()
+    df = df.drop(columns=['index'])
+
+  # Extension: load fish dataset
+  elif data_name == 'fish':
+    train_url = './data_files/fish.csv'
+
+    df = pd.read_csv(train_url, header=0)
+    df.columns = ['species', 'length', 'weight']
+
+    df = df[(df[['length','weight']] != 0).all(axis=1)]
+
+    data_train, data_test = train_test_split(df, test_size=0.2)
+    df = pd.concat((data_train, data_test), axis=0)
+
+    # Column names
+    df.columns = ['species', 'length', 'weight']
+    df['length'] = pd.to_numeric(df['length'], downcast="float")
+    df['weight'] = pd.to_numeric(df['weight'], downcast="float")
+    # One-hot encoding
+    df = pd.get_dummies(df, columns=['species'])
+
+    df['weight'].where(df['weight'] > 31, 0, inplace=True)
+    df['weight'].where(df['weight'] <= 31, 1, inplace=True)
+
+    # Sets label name as Y
+    df = df.rename(columns={'weight': 'Y'})
+    df['Y'] = df['Y'].astype(int)
+
+    # Resets index
+    df = df.reset_index()
+    df = df.drop(columns=['index'])
+
+  elif data_name == 'covid':
+    train_url = './data_files/covid_train.csv'
+
+    df = pd.read_csv(train_url, header=0)
+
+    df = df[df.Target != 'Fatalities']
+    df.drop('Id', 1, inplace=True)
+    df.drop('County', 1,inplace=True)
+    df.drop('Province_State', 1, inplace=True)
+    df.drop('Date', 1, inplace=True)
+    df.drop('Target', 1, inplace=True)
+    
+    data_train, data_test = train_test_split(df, test_size=0.2)
+    df = pd.concat((data_train, data_test), axis=0)
+
+    # Column names
+    df['Population'] = pd.to_numeric(df['Population'], downcast="float")
+    df['Weight'] = pd.to_numeric(df['Weight'], downcast="float")
+    df['TargetValue'] = pd.to_numeric(df['TargetValue'], downcast="float")
+
+    # One-hot encoding
+    df = pd.get_dummies(df, columns=['Country_Region'])
+
+    df['TargetValue'].where(df['TargetValue'] > 13, 0, inplace=True)
+    df['TargetValue'].where(df['TargetValue'] <= 13, 1, inplace=True)
+
+    # Sets label name as Y
+    df = df.rename(columns={'TargetValue': 'Y'})
     df['Y'] = df['Y'].astype(int)
 
     # Resets index
@@ -372,27 +474,71 @@ def load_image_data(data_name, dict_no, noise_rate):
     noise_idx: Indices of noisy samples
   """
 
-  # Loads datasets
-  if data_name == 'cifar10':
-    (x_train, y_train), (x_test, y_test) = datasets.cifar10.load_data()
-  elif data_name == 'cifar100':
-    (x_train, y_train), (x_test, y_test) = datasets.cifar100.load_data()
+  # Attempt to pass image dataset though model but unsuccessful in it's current state (not included in paper)
+  # Fish images taken from https://www.kaggle.com/sripaadsrinivasan/fish-species-image-data
+  # all images from the "numbered" directory of this dataset are placed in ./data_files/fish_dataset/images
+  # (all images but one removed for ease of uploading to Github)
+  # and ./data_files/fish_dataset/final_all_index.txt contains the labels for each numbered image
+  if data_name == 'fishes':
+    path_to_files = './data_files/fish_dataset/images'
 
-  # Splits train, valid and test sets
-  train_idx = np.random.permutation(len(x_train))
+    # arrays used to store each vectorized image and each label
+    all_data_x = []
+    all_data_y = []
 
-  valid_idx = train_idx[:dict_no['valid']]
-  train_idx = train_idx[dict_no['valid']:(dict_no['train']+dict_no['valid'])]
+    # load images into numpy array
+    for subdir, dirs, files in os.walk(path_to_files):
+        for file in files:
+            image = Image.open(subdir + '/' + file)
+            image_array = np.array(image)
+            all_data_x.append(image_array)
 
-  test_idx = np.random.permutation(len(x_test))[:dict_no['test']]
+    # get first 800 (subset) labels from dataset txt file
+    df = pd.read_csv("./data_files/fish_dataset/final_all_index.txt",
+                          delimiter = '=')
+                    
+    df.columns = ['spec_num', 'spec_name', 'col_type', 'id', 'pic_num']
+    all_data_y = df['spec_num']
 
-  x_valid = x_train[valid_idx]
-  x_train = x_train[train_idx]
-  x_test = x_test[test_idx]
+    all_data_x = np.array(all_data_x)
+    all_data_y = np.array(all_data_y)
 
-  y_valid = y_train[valid_idx].flatten()
-  y_train = y_train[train_idx].flatten()
-  y_test = y_test[test_idx].flatten()
+    # Splits train, valid and test sets
+    train_idx = np.random.permutation(len(all_data_x) - 1)
+
+    test_idx = train_idx[:dict_no['test']]
+    valid_idx = train_idx[dict_no['test']: (dict_no['test'] + dict_no['valid'])]
+    train_idx = train_idx[(dict_no['test'] + dict_no['valid']):(dict_no['train']+dict_no['test'] + dict_no['valid'])]
+
+    x_valid = all_data_x[valid_idx]
+    x_train = all_data_x[train_idx]
+    x_test = all_data_x[test_idx]
+
+    y_valid = all_data_y[valid_idx].flatten()
+    y_train = all_data_y[train_idx].flatten()
+    y_test = all_data_y[test_idx].flatten()
+  else:
+    # Loads datasets
+    if data_name == 'cifar10':
+      (x_train, y_train), (x_test, y_test) = datasets.cifar10.load_data()
+    elif data_name == 'cifar100':
+      (x_train, y_train), (x_test, y_test) = datasets.cifar100.load_data()
+
+    # Splits train, valid and test sets
+    train_idx = np.random.permutation(len(x_train))
+
+    valid_idx = train_idx[:dict_no['valid']]
+    train_idx = train_idx[dict_no['valid']:(dict_no['train']+dict_no['valid'])]
+
+    test_idx = np.random.permutation(len(x_test))[:dict_no['test']]
+
+    x_valid = x_train[valid_idx]
+    x_train = x_train[train_idx]
+    x_test = x_test[test_idx]
+
+    y_valid = y_train[valid_idx].flatten()
+    y_train = y_train[train_idx].flatten()
+    y_test = y_test[test_idx].flatten()
 
   # Adds noise on labels
   y_train, noise_idx = dvrl_utils.corrupt_label(y_train, noise_rate)

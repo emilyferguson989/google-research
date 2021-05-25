@@ -25,7 +25,7 @@ import numpy as np
 from sklearn import linear_model
 import tensorflow.compat.v1 as tf
 
-from dvrl import dvrl
+import dvrl
 
 
 class DvrlTest(tf.test.TestCase):

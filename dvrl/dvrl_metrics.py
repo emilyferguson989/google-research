@@ -19,6 +19,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -109,7 +111,7 @@ def discover_corrupted_sample(dve_out, noise_idx, noise_rate, plot=True):
     plt.ylabel('Fraction of discovered corrupted samples', size=16)
     plt.legend(['DVRL', 'Optimal', 'Random'], prop={'size': 16})
     plt.title('Corrupted Sample Discovery', size=16)
-    plt.show()
+    plt.savefig("./CorruptedSampleDiscovery_covid_2.png")
 
   # Returns True Positive Rate of corrupted label discovery
   return output_perf
@@ -239,7 +241,7 @@ def remove_high_low(dve_out, eval_model, x_train, y_train,
                prop={'size': 16})
     plt.title('Remove High/Low Valued Samples', size=16)
 
-    plt.show()
+    plt.savefig("./RemoveHighLowValuedSamples_covid_2.png")
 
   return temp_output
 

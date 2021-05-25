@@ -29,9 +29,9 @@ import pandas as pd
 import tensorflow.compat.v1 as tf
 from tensorflow.compat.v1 import keras
 
-from dvrl import data_loading
-from dvrl import dvrl
-from dvrl import dvrl_metrics
+import data_loading
+import dvrl
+import dvrl_metrics
 
 
 def main(args):
@@ -155,9 +155,9 @@ if __name__ == '__main__':
 
   parser.add_argument(
       '--data_name',
-      choices=['adult', 'blog'],
-      help='data name (adult or blog)',
-      default='adult',
+      choices=['adult', 'blog', 'cali', 'fish'],
+      help='data name (adult, blog, cali, or fish)',
+      default='cali',
       type=str)
   parser.add_argument(
       '--normalization',

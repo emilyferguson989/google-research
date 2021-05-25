@@ -23,15 +23,14 @@ from __future__ import print_function
 import argparse
 import numpy as np
 from sklearn import linear_model
-import tensorflow.compat.v1 as tf
 from tensorflow.compat.v1 import keras
 from tensorflow.compat.v1.keras import applications
 from tensorflow.compat.v1.keras import layers
 from tensorflow.compat.v1.keras import models
 
-from dvrl import data_loading
-from dvrl import dvrl
-from dvrl import dvrl_metrics
+import data_loading
+import dvrl
+import dvrl_metrics
 
 
 def main(args):
@@ -208,8 +207,8 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument(
       '--data_name',
-      choices=['cifar10', 'cifar100'],
-      help='data name (cifar10 or cifar100)',
+      choices=['cifar10', 'cifar100', 'fish'],
+      help='data name (cifar10, cifar100, or fish)',
       default='cifar10',
       type=str)
   parser.add_argument(
